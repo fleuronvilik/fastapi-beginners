@@ -1,6 +1,7 @@
 import time
 import psycopg2
 
+from typing import List
 from fastapi import FastAPI, Response, status, HTTPException
 from psycopg2.extras import RealDictCursor
 from fastapi.params import Depends
@@ -37,25 +38,25 @@ def raise_404_or_not(post, id=None):
 def root():
     return {"message": "Welcome to my uncomplete API"}
 
-@app.get('/posts')
+@app.get('/posts', response_model=List[schemas.ResponsePost])
 def get_posts(db: Session=Depends(get_db)):
     all_posts = db.query(models.Post).all()
-    return {"data": all_posts}
+    return all_posts
 
-@app.post('/posts', status_code=status.HTTP_201_CREATED)
+@app.post('/posts', status_code=status.HTTP_201_CREATED, response_model=schemas.ResponsePost)
 def create_post(post: schemas.Post, db: Session=Depends(get_db)):
     """ title=post.title, content=post.content, published=post.published (Unpacking)"""
     new_post = models.Post(**post.dict())
     db.add(new_post)
     db.commit()
     db.refresh(new_post) # RETURNING *
-    return {"data": new_post}
+    return new_post
 
-@app.get('/posts/{id}')
+@app.get('/posts/{id}', response_model=schemas.ResponsePost)
 def get_post(id: int, db: Session=Depends(get_db)):
     post = db.query(models.Post).get(ident=id)
     raise_404_or_not(post, id)
-    return {"data": post}
+    return post
 
 @app.delete('/posts/{id}', status_code=status.HTTP_204_NO_CONTENT)
 def del_post(id: int, db: Session=Depends(get_db)):
@@ -65,10 +66,10 @@ def del_post(id: int, db: Session=Depends(get_db)):
     db.commit()
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 
-@app.put('/posts/{id}')
+@app.put('/posts/{id}', response_model=schemas.ResponsePost)
 def update_post(id: int, updates: schemas.Post, db: Session=Depends(get_db)):
     post = db.query(models.Post).filter(models.Post.id == id)
     raise_404_or_not(post.first(), id)
     post.update(updates.dict(), synchronize_session=False)
     db.commit()
-    return {"data": post.first()}
+    return post.first()

@@ -2,12 +2,13 @@ import time
 import psycopg2
 
 from typing import List
-from fastapi import FastAPI, Response, status, HTTPException
+from fastapi import FastAPI, Response, status
 from psycopg2.extras import RealDictCursor
 from fastapi.params import Depends
 from sqlalchemy.orm.session import Session
 
 from .db import get_db, engine
+from . import models, schemas, utils
 
 while True:
     try:
@@ -27,13 +28,6 @@ while True:
 models.Base.metadata.create_all(bind=engine)
 
 app = FastAPI()
- 
-def raise_404_or_not(post, id=None):
-    if not post:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"No post with ID {id}"
-        )
 
 @app.get('/')
 def root():
@@ -56,13 +50,13 @@ def create_post(post: schemas.Post, db: Session=Depends(get_db)):
 @app.get('/posts/{id}', response_model=schemas.ResponsePost)
 def get_post(id: int, db: Session=Depends(get_db)):
     post = db.query(models.Post).get(ident=id)
-    raise_404_or_not(post, id)
+    utils.raise_404_or_not(post, id)
     return post
 
 @app.delete('/posts/{id}', status_code=status.HTTP_204_NO_CONTENT)
 def del_post(id: int, db: Session=Depends(get_db)):
     del_query = db.query(models.Post).filter(models.Post.id == id)
-    raise_404_or_not(del_query.first(), id)
+    utils.raise_404_or_not(del_query.first(), id)
     del_query.delete()
     db.commit()
     return Response(status_code=status.HTTP_204_NO_CONTENT)
@@ -70,7 +64,22 @@ def del_post(id: int, db: Session=Depends(get_db)):
 @app.put('/posts/{id}', response_model=schemas.ResponsePost)
 def update_post(id: int, updates: schemas.Post, db: Session=Depends(get_db)):
     post = db.query(models.Post).filter(models.Post.id == id)
-    raise_404_or_not(post.first(), id)
+    utils.raise_404_or_not(post.first(), id)
     post.update(updates.dict(), synchronize_session=False)
     db.commit()
     return post.first()
+
+@app.post('/users', status_code=status.HTTP_201_CREATED, response_model=schemas.UserCreated)
+def create_user(user: schemas.UserCreate, db: Session=Depends(get_db)):
+    user.password = utils.hash(user.password) 
+    new_user = models.User(**user.dict())
+    db.add(new_user)
+    db.commit()
+    db.refresh(new_user)
+    return new_user
+
+@app.get('/users/{id}', response_model=schemas.UserCreated)
+def get_user(id: int, db: Session=Depends(get_db)):
+    user = db.query(models.User).get(ident=id)
+    utils.raise_404_or_not(user, id, msg="No User with ID {}")
+    return user

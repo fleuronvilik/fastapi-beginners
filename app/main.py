@@ -7,8 +7,7 @@ from psycopg2.extras import RealDictCursor
 from fastapi.params import Depends
 from sqlalchemy.orm.session import Session
 
-from .db import get_db
-from . import models, schemas
+from .db import get_db, engine
 
 while True:
     try:
@@ -24,6 +23,8 @@ while True:
     except Exception as error:
         print(error)
         time.sleep(2)
+
+models.Base.metadata.create_all(bind=engine)
 
 app = FastAPI()
  

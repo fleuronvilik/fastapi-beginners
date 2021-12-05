@@ -6,6 +6,9 @@ pwd_ctx = CryptContext(schemes=["bcrypt"], deprecated="auto")
 def hash(password: str):
     return pwd_ctx.hash(password)
 
+def verify(plain_pwd, hashed_pwd):
+    return pwd_ctx.verify(plain_pwd, hashed_pwd)
+    
 def raise_404_or_not(rsrc, id=None, msg="No post with ID {}"):
     if not rsrc:
         raise HTTPException(

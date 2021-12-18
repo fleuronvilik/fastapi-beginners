@@ -8,6 +8,7 @@ class Post(BaseModel):
     published: bool = True
 
 class ResponsePost(Post):
+    owner_id: int
     id: int
     created_at: datetime
     class Config:

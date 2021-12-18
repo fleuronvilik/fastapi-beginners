@@ -17,9 +17,9 @@ def get_posts(db: Session=Depends(get_db), user_id: int=Depends(oauth2.get_curre
     return all_posts
 
 @router.post('/', status_code=status.HTTP_201_CREATED, response_model=schemas.ResponsePost)
-def create_post(post: schemas.Post, db: Session=Depends(get_db), user_id: int=Depends(oauth2.get_current_user)):
+def create_post(post: schemas.Post, db: Session=Depends(get_db), current_user: int=Depends(oauth2.get_current_user)):
     """ title=post.title, content=post.content, published=post.published (Unpacking)"""
-    new_post = models.Post(**post.dict())
+    new_post = models.Post(owner_id=current_user.id ,**post.dict())
     db.add(new_post)
     db.commit()
     db.refresh(new_post) # RETURNING *

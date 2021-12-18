@@ -1,4 +1,5 @@
 from typing import List
+from fastapi.exceptions import HTTPException
 from sqlalchemy.orm.session import Session
 
 from fastapi import Response, status, Depends, APIRouter
@@ -12,7 +13,7 @@ router = APIRouter(
 )
 
 @router.get('/', response_model=List[schemas.ResponsePost])
-def get_posts(db: Session=Depends(get_db), user_id: int=Depends(oauth2.get_current_user)):
+def get_posts(db: Session=Depends(get_db), current_user: int=Depends(oauth2.get_current_user)):
     all_posts = db.query(models.Post).all()
     return all_posts
 
@@ -26,23 +27,28 @@ def create_post(post: schemas.Post, db: Session=Depends(get_db), current_user: i
     return new_post
 
 @router.get('/{id}', response_model=schemas.ResponsePost)
-def get_post(id: int, db: Session=Depends(get_db), user_id: int=Depends(oauth2.get_current_user)):
+def get_post(id: int, db: Session=Depends(get_db), current_user: int=Depends(oauth2.get_current_user)):
     post = db.query(models.Post).get(ident=id)
     utils.raise_404_or_not(post, id)
     return post
 
 @router.delete('/{id}', status_code=status.HTTP_204_NO_CONTENT)
-def del_post(id: int, db: Session=Depends(get_db), user_id: int=Depends(oauth2.get_current_user)):
-    del_query = db.query(models.Post).filter(models.Post.id == id)
-    utils.raise_404_or_not(del_query.first(), id)
-    del_query.delete()
+def del_post(id: int, db: Session=Depends(get_db), current_user: int=Depends(oauth2.get_current_user)):
+    query = db.query(models.Post).filter(models.Post.id == id)
+    post = query.first()
+    utils.raise_404_or_not(post, id)
+    if not current_user.id == post.owner_id:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not authorized to perform requested action")
+    post.delete()
     db.commit()
-    return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 @router.put('/{id}', response_model=schemas.ResponsePost)
-def update_post(id: int, updates: schemas.Post, db: Session=Depends(get_db), user_id: int=Depends(oauth2.get_current_user)):
-    post = db.query(models.Post).filter(models.Post.id == id)
-    utils.raise_404_or_not(post.first(), id)
+def update_post(id: int, updates: schemas.Post, db: Session=Depends(get_db), current_user: int=Depends(oauth2.get_current_user)):
+    query = db.query(models.Post).filter(models.Post.id == id)
+    post = query.first()
+    utils.raise_404_or_not(post, id)
+    if not current_user.id == post.owner_id:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not authorized to perform requested action")
     post.update(updates.dict(), synchronize_session=False)
     db.commit()
     return post.first()

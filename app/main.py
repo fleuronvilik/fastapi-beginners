@@ -1,30 +1,7 @@
-import time
-import psycopg2
-
-# from typing import List
-from fastapi import FastAPI #, Response, status
-from psycopg2.extras import RealDictCursor
-# from fastapi.params import Depends
-# from sqlalchemy.orm.session import Session
-
+from fastapi import FastAPI
 from .db import engine
 from .routers import post, user, auth
 from . import models
-
-while True:
-    try:
-        conn = psycopg2.connect(
-            host='localhost',
-            database='fastapi',
-            user='postgres',
-            password='postgres',
-            cursor_factory=RealDictCursor
-        )
-        cursor = conn.cursor()
-        break
-    except Exception as error:
-        print(error)
-        time.sleep(2)
 
 models.Base.metadata.create_all(bind=engine)
 

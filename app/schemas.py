@@ -27,6 +27,10 @@ class ResponsePost(Post):
     class Config:
         orm_mode = True
 
+class PostWithVotesCount(BaseModel):
+    Post: ResponsePost
+    votes: int
+
 class Token(BaseModel):
     access_token: str
     token_type: str

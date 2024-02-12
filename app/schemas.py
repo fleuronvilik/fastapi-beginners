@@ -13,7 +13,7 @@ class UserCreated(BaseModel):
     email: EmailStr
     created_at: datetime
     class Config:
-        from_attributes = True # orm_mode = True
+        orm_mode = True
 
 class PostBase(BaseModel):
     title: str

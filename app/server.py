@@ -8,6 +8,7 @@ from sqlalchemy.orm import Session
 import models
 import schemas
 import database
+import utils
 
 models.database.Base.metadata.create_all(bind=database.engine)
 
@@ -75,3 +76,21 @@ def update_post(id: int, updated_post: schemas.PostBase, db: Session = Depends(d
     query.update(updated_post.model_dump(), synchronize_session=False)
     db.commit()
     return query.first()
+
+
+@app.post('/users', response_model=schemas.UserCreated)
+def create_user(user: schemas.UserCreate, db: Session = Depends(database.get_db)):
+    hashed_password = utils.hash(user.password)
+    user.password = hashed_password
+    new_user = models.User(**user.model_dump())
+    db.add(new_user)
+    db.commit()
+    db.refresh(new_user)
+    return new_user
+
+@app.get('/users/{id}', response_model=schemas.UserCreated)
+def get_user(id: int, db: Session = Depends(database.get_db)):
+    user = db.query(models.User).filter(models.User.id == id).first()
+    if user is None:
+        raise HTTPException(status_code=404, detail=f"User {id} not found")
+    return user

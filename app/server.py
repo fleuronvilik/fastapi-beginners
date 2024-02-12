@@ -30,30 +30,31 @@ while True:
 
 @app.get('/')
 def root():
-    return {"status": "in progress"}
+    return {
+        "status": "in progress",
+        "releases": None,
+        "packages": None,
+        "documentation": "https://fastapi.tiangolo.com/",
+    }
 
-@app.get('/sqlalchemy')
-def test_posts(db: Session = Depends(database.get_db)):
-    return {"status": "success"}
-
-@app.get('/posts')
+@app.get('/posts', response_model=list[schemas.Post])
 def get_posts(db: Session = Depends(database.get_db)):
     posts = db.query(models.Post).all() # cursor.execute("""SELECT * FROM posts""")
-    return {"data": posts}
+    return posts
 
-@app.post('/posts', status_code=status.HTTP_201_CREATED)
-def create_post(post: schemas.Post, db: Session = Depends(database.get_db)):
+@app.post('/posts', status_code=status.HTTP_201_CREATED, response_model=schemas.Post)
+def create_post(post: schemas.PostCreate, db: Session = Depends(database.get_db)):
     new_post = models.Post(**post.model_dump())
     db.add(new_post)
     db.commit()
     db.refresh(new_post)
-    return {"data": new_post}
+    return new_post
 
 @app.get('/posts/{id}')
 def get_post(id: int, db: Session = Depends(database.get_db)):
     query = db.query(models.Post).filter(models.Post.id == id)
-    print(query)
-    return {"data": query.first()}
+    # print(query)
+    return query.first()
 
 @app.delete('/posts/{id}')
 def delete_post(id: int, db: Session = Depends(database.get_db)):
@@ -65,19 +66,12 @@ def delete_post(id: int, db: Session = Depends(database.get_db)):
     db.commit()
     return {"data": f"Post {id} has been deleted"}
 
-@app.put('/posts/{id}')
-def update_post(id: int, updated_post: schemas.Post, db: Session = Depends(database.get_db)):
+@app.put('/posts/{id}', response_model=schemas.Post)
+def update_post(id: int, updated_post: schemas.PostBase, db: Session = Depends(database.get_db)):
     query = db.query(models.Post).filter(models.Post.id == id)
     post = query.first()
     if post is None:
         raise HTTPException(status_code=404, detail=f"Post {id} not found")
     query.update(updated_post.model_dump(), synchronize_session=False)
     db.commit()
-    return {"data": query.first()}
-
-@app.put('/posts/{id}')
-def put_post(id: int, post: schemas.Post):
-    query = """UPDATE posts SET title=%s, content=%s, published=%s WHERE id=%s RETURNING *"""
-    cursor.execute(query, (post.title, post.content, post.published, id))
-    conn.commit()
-    return {"data": cursor.fetchone()}
+    return query.first()

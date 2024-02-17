@@ -1,22 +1,20 @@
 from time import time
 from datetime import datetime, timedelta
-# from fastapi.encoders import jsonable_encoder
 from jose import jwt, JWTError
 
 from fastapi import Depends, status, HTTPException
 from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.orm.session import Session
 
-# from app import schemas, models, db
-# from .config import settings
+from config import settings
 
 import schemas
 import models
 import database as db
 
-SECRET_KEY = "69e45d3d041511b44e3b6a6dc2ca42c6b6dc7cf4476afb8ce1bf14038b33f437" #settings.secret_key
-ACCESS_TOKEN_EXPIRE_MINUTES = 30 # settings.access_token_expire_minutes
-ALGORITHM = "HS256" # settings.algorithm # is default in jwt.encode() anyway
+SECRET_KEY = settings.secret_key
+ACCESS_TOKEN_EXPIRE_MINUTES = settings.access_token_expire_minutes
+ALGORITHM = settings.algorithm
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl='/login')
 

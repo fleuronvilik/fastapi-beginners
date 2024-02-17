@@ -26,6 +26,7 @@ class PostCreate(PostBase):
 
 class Post(PostBase):
     id: int
+    owner_id: int #owner: UserCreated
     class config:
         orm_mode = True
 

@@ -1,6 +1,10 @@
-from fastapi import APIRouter, Depends, status, HTTPException, Response
+from fastapi import APIRouter, Depends, status, HTTPException #, Response
 from sqlalchemy.orm.session import Session
-from .. import db, models, schemas, oauth2 # , utils
+
+import database as db
+import models
+import schemas
+import oauth2
 
 router = APIRouter(
     prefix="/vote",
@@ -25,7 +29,7 @@ def vote(vote: schemas.Vote, db: Session=Depends(db.get_db), current_user: dict=
         new_vote = models.Vote(user_id=current_user.id, post_id=vote.post_id)
         db.add(new_vote)
         db.commit()
-        return {"message": "successfully add vote"}
+        return {"message": "successfully added vote"}
     else:
         if not found_vote:
             return HTTPException(
@@ -33,4 +37,4 @@ def vote(vote: schemas.Vote, db: Session=Depends(db.get_db), current_user: dict=
                 detail="Vote does not exist")
         q.delete(synchronize_session=False)
         db.commit()
-        return {"message": "successfully delete vote"}
+        return {"message": "successfully deleted vote"}

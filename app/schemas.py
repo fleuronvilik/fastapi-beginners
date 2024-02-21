@@ -44,12 +44,12 @@ class Token(BaseModel):
 class TokenData(BaseModel):
     id: Optional[str] = None
 
-"""
 class Vote(BaseModel):
     post_id: int
     dir: conint(ge=0,le=1)
 
+
 class PostWithVotesCount(BaseModel):
     Post: ResponsePost
     votes: int
-"""
+    

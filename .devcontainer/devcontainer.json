@@ -14,39 +14,39 @@
 	"forwardPorts": [8000],
 
 	// Use 'postCreateCommand' to run commands after the container is created.
-	// "postCreateCommand": "pip install --user -r requirements.txt",
+	"postCreateCommand": "cd app",
 
 	// Configure tool-specific properties.
 	"customizations": {
 		// Configure properties specific to VS Code.
 		"vscode": {
 			// Set *default* container specific settings.json values on container create.
-			"settings": { /*
+			"settings": {
 				"sqltools.connections": [
 					{
-						"name": "Container database",
+						"name": "default",
 						"driver": "PostgreSQL",
 						"previewLimit": 50,
 						"server": "localhost",
 						"port": 5432,
-						"database": "app",
-						"username": "app_user",
-						"password": "app_password"
+						"database": "postgres",
+						"username": "postgres",
+						"password": "postgres"
 					}
-				], */
-				"python.defaultInterpreterPath": "/usr/local/bin/python",
-				"python.linting.enabled": true,
-				"python.testing.pytestEnabled": true,
-				"python.testing.unittestEnabled": false,
-				"[python]": {
-					"editor.defaultFormatter": "ms-python.black-formatter"
-				},
-				"python.formatting.provider": "black",
-				"files.exclude": {
-					"**/*.coverage": true,
-					".ruff_cache": true,
-					".pytest_cache": true
-				}
+				] //,
+				// "python.defaultInterpreterPath": "/usr/local/bin/python",
+				// "python.linting.enabled": true,
+				// "python.testing.pytestEnabled": true,
+				// "python.testing.unittestEnabled": false,
+				// "[python]": {
+				//	"editor.defaultFormatter": "ms-python.black-formatter"
+				// },
+				// "python.formatting.provider": "black",
+				// "files.exclude": {
+				//	"**/*.coverage": true,
+				//	".ruff_cache": true,
+				// 	".pytest_cache": true
+				// }
 			},
 
 			// Add the IDs of extensions you want installed when the container is created.
@@ -58,7 +58,11 @@
 				"charliermarsh.ruff",
 				// "ms-azuretools.vscode-bicep",
 				"mtxr.sqltools",
-				"mtxr.sqltools-driver-pg"
+				"mtxr.sqltools-driver-pg",
+				"mtxr.sqltools-driver-pg-native",
+				"GitHub.copilot",
+				"GitHub.copilot-chat",
+				"rangav.vscode-thunder-client"
 			]
 		}
 	}

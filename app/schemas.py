@@ -15,21 +15,26 @@ class UserCreated(BaseModel):
     class Config:
         orm_mode = True
 
-class Post(BaseModel):
+class PostBase(BaseModel):
     title: str
     content: str
-    published: bool = True
+    published: bool
 
-class ResponsePost(Post):
-    owner: UserCreated
+class PostCreate(PostBase):
+    published: bool = True
+    pass
+
+class Post(PostBase):
     id: int
-    created_at: datetime
-    class Config:
+    owner_id: int #owner: UserCreated
+    class config:
         orm_mode = True
 
-class PostWithVotesCount(BaseModel):
-    Post: ResponsePost
-    votes: int
+class ResponsePost(Post):
+    # owner: UserCreated
+    created_at: datetime
+    class Config:
+        from_attributes = True #orm_mode = True
 
 class Token(BaseModel):
     access_token: str
@@ -40,4 +45,10 @@ class TokenData(BaseModel):
 
 class Vote(BaseModel):
     post_id: int
-    dir: conint(ge=0,le=1)  
+    dir: conint(ge=0,le=1)
+
+
+class PostWithVotesCount(BaseModel):
+    Post: ResponsePost
+    votes: int
+    

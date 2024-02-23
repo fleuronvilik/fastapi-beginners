@@ -5,14 +5,13 @@ from sqlalchemy.sql.functions import func
 
 from fastapi import status, Depends, APIRouter #, Response
 
-# from ..db import db.get_db
-# from .. import models, schemas, utils, oauth2
+from app import models, schemas, utils, oauth2, database as db
 
-import database as db
-import models
-import schemas
-import oauth2
-import utils
+# import database as db
+# import models
+# import schemas
+# import oauth2
+# import utils
 
 router = APIRouter(
     prefix='/posts',
@@ -37,7 +36,7 @@ def get_posts(db: Session=Depends(db.get_db), limit: int=10, skip: int=0, search
     return results
 
 @router.post('/', status_code=status.HTTP_201_CREATED, response_model=schemas.ResponsePost)
-def create_post(post: schemas.Post, db: Session=Depends(db.get_db), current_user: int=Depends(oauth2.get_current_user)):
+def create_post(post: schemas.PostCreate, db: Session=Depends(db.get_db), current_user: int=Depends(oauth2.get_current_user)):
     """ title=post.title, content=post.content, published=post.published (Unpacking)"""
     new_post = models.Post(owner_id=current_user.id ,**post.dict())
     db.add(new_post)
@@ -69,16 +68,16 @@ def del_post(id: int, db: Session=Depends(db.get_db), current_user: int=Depends(
     utils.raise_404_or_not(post, id)
     if not current_user.id == post.owner_id:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not authorized to perform requested action")
-    post.delete()
+    query.delete(synchronize_session=False)
     db.commit()
 
 @router.put('/{id}', response_model=schemas.ResponsePost)
-def update_post(id: int, updates: schemas.Post, db: Session=Depends(db.get_db), current_user: int=Depends(oauth2.get_current_user)):
+def update_post(id: int, updates: schemas.PostCreate, db: Session=Depends(db.get_db), current_user: int=Depends(oauth2.get_current_user)):
     query = db.query(models.Post).filter(models.Post.id == id)
     post = query.first()
     utils.raise_404_or_not(post, id)
     if not current_user.id == post.owner_id:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not authorized to perform requested action")
-    post.update(updates.dict(), synchronize_session=False)
+    query.update(updates.model_dump(), synchronize_session=False)
     db.commit()
-    return post.first()
+    return query.first()

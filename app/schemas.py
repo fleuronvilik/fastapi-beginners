@@ -32,7 +32,6 @@ class Post(PostBase):
 
 class ResponsePost(Post):
     # owner: UserCreated
-    id: int
     created_at: datetime
     class Config:
         from_attributes = True #orm_mode = True

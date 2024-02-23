@@ -6,11 +6,11 @@ from fastapi import Depends, status, HTTPException
 from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.orm.session import Session
 
-from config import settings
-
-import schemas
-import models
-import database as db
+from app.config import settings
+from app import schemas, models, database as db
+# import schemas
+# import models
+# import database as db
 
 SECRET_KEY = settings.secret_key
 ACCESS_TOKEN_EXPIRE_MINUTES = settings.access_token_expire_minutes
